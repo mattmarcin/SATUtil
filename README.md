@@ -14,6 +14,6 @@ Copy init.lua into your project.
 
 Require the Module and then pass in 2 Models.
 
-SATUtil.ModelsCollide(model1, model 2)
+SATUtil.ModelsCollide(model1, model2)
 
 The parameters must be Roblox Models.
