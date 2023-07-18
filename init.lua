@@ -1,4 +1,3 @@
--- Compiled with L+ C Edition
 -- Seperating Axis Theorem (SAT) collision detection for Roblox
 -- by @mattmarcin
 -- Pass in 2 Models to ModelsColldie to test if they intersect. Supports rotation.

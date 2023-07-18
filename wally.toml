@@ -1,7 +1,8 @@
 [package]
 name = "mattmarcin/satutil"
 description = "Roblox SAT utility library"
-version = "0.1.0"
+version = "0.1.1"
+license = "MIT"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 exclude = [
