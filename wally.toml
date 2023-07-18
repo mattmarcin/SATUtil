@@ -1,5 +1,5 @@
 [package]
-name = "m/satutil"
+name = "mattmarcin/satutil"
 description = "Roblox SAT utility library"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
