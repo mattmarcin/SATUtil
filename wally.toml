@@ -1,0 +1,12 @@
+[package]
+name = "m/satutil"
+description = "Roblox SAT utility library"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+exclude = [
+    "README.md", ".styluaignore", ".gitignore",
+	"aftman.toml", "selene.toml", "stylua.toml"
+]
+
+[dependencies]
