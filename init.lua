@@ -5,60 +5,69 @@
 local SATUtil = {}
 
 -- Test if two bounding boxes intersect. Return true if they do.
-function SATUtil.ModelsCollide(box1: Model, box2: Model)
-	local box1CFrame, box1Size = box1:GetBoundingBox()
-	local box2CFrame, box2Size = box2:GetBoundingBox()
 
-	local box1Corners = SATUtil.getCorners(box1CFrame, box1Size)
-	local box2Corners = SATUtil.getCorners(box2CFrame, box2Size)
+function SATUtil.ModelsCollide(object1: Model, object2: Model)
+	local box1CFrame, box1Size = object1:GetBoundingBox()
+	local box2CFrame, box2Size = object2:GetBoundingBox()
 
-	local axes = {
-		(box1Corners[2] - box1Corners[1]).unit,
-		(box1Corners[3] - box1Corners[1]).unit,
-		(box1Corners[5] - box1Corners[1]).unit,
-		(box2Corners[2] - box2Corners[1]).unit,
-		(box2Corners[3] - box2Corners[1]).unit,
-		(box2Corners[5] - box2Corners[1]).unit,
-	}
+	local axes = {}
+	local eps = 1e-5 -- Small epsilon to deal with numerical precision issues
 
-	for _, axis in ipairs(axes) do
-		local box1Min = math.huge
-		local box1Max = -math.huge
-		for _, corner in ipairs(box1Corners) do
-			local projection = axis:Dot(corner - box1CFrame.p)
-			box1Min = math.min(box1Min, projection)
-			box1Max = math.max(box1Max, projection)
-		end
+	-- Get the box axes
+	axes[1], axes[2], axes[3] = box1CFrame.RightVector, box1CFrame.UpVector, box1CFrame.LookVector
+	axes[4], axes[5], axes[6] = box2CFrame.RightVector, box2CFrame.UpVector, box2CFrame.LookVector
 
-		local box2Min = math.huge
-		local box2Max = -math.huge
-		for _, corner in ipairs(box2Corners) do
-			local projection = axis:Dot(axis, corner - box2CFrame.p)
-			box2Min = math.min(box2Min, projection)
-			box2Max = math.max(box2Max, projection)
-		end
-
-		if box1Max < box2Min or box1Min > box2Max then
-			return false
-		end
-	end
-
-	return true
-end
-
--- Get the corners of a bounding box
-function SATUtil.getCorners(inCFrame, inSize)
-	local sizeDiv2 = inSize / 2
-	local corners = {}
-	for i = -1, 1, 2 do
-		for j = -1, 1, 2 do
-			for k = -1, 1, 2 do
-				local newPos = inCFrame:PointToWorldSpace(Vector3.new(i * sizeDiv2.X, j * sizeDiv2.Y, k * sizeDiv2.Z))
-				table.insert(corners, newPos)
+	-- Compute the cross product of the edge directions
+	for i = 1, 3 do
+		for j = 4, 6 do
+			axes[#axes + 1] = axes[i]:Cross(axes[j])
+			-- If the cross product is very small, it means the edges are almost parallel, so we don't need this axis
+			if axes[#axes].Magnitude < eps then
+				axes[#axes] = nil
 			end
 		end
 	end
-	return corners
+
+	-- Now we need to project both boxes onto these axes and see if the projections overlap
+	for _, axis in pairs(axes) do
+		if axis then -- Ensure the axis is not nil (in case of almost parallel edges)
+			local min1, max1 = math.huge, -math.huge
+			local min2, max2 = math.huge, -math.huge
+			-- Compute the projection of the first box onto the current axis
+			for _, corner in pairs(SATUtil.getBoxCorners(box1CFrame, box1Size)) do
+				local projection = corner:Dot(axis)
+				min1 = math.min(min1, projection)
+				max1 = math.max(max1, projection)
+			end
+			-- Compute the projection of the second box onto the current axis
+			for _, corner in pairs(SATUtil.getBoxCorners(box2CFrame, box2Size)) do
+				local projection = corner:Dot(axis)
+				min2 = math.min(min2, projection)
+				max2 = math.max(max2, projection)
+			end
+			-- If the projections do not overlap, then we have found a separating axis and the boxes do not intersect
+			if max1 < min2 or max2 < min1 then
+				return false
+			end
+		end
+	end
+	-- If we haven't found a separating axis, then the boxes intersect
+	return true
+end
+
+-- Helper function to get the corners of a box given its CFrame and size
+function SATUtil.getBoxCorners(cframe, size)
+	local halfSize = size / 2
+	return {
+		cframe * Vector3.new(halfSize.X, halfSize.Y, halfSize.Z),
+		cframe * Vector3.new(-halfSize.X, halfSize.Y, halfSize.Z),
+		cframe * Vector3.new(halfSize.X, -halfSize.Y, halfSize.Z),
+		cframe * Vector3.new(halfSize.X, halfSize.Y, -halfSize.Z),
+		cframe * Vector3.new(-halfSize.X, -halfSize.Y, halfSize.Z),
+		cframe * Vector3.new(-halfSize.X, halfSize.Y, -halfSize.Z),
+		cframe * Vector3.new(halfSize.X, -halfSize.Y, -halfSize.Z),
+		cframe * Vector3.new(-halfSize.X, -halfSize.Y, -halfSize.Z),
+	}
 end
 
 return SATUtil
