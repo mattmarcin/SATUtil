@@ -1,10 +1,12 @@
 -- Separating Axis Theorem (SAT) collision detection for Roblox
 -- by @mattmarcin
 -- Pass in 2 Models to ModelsCollide to test if they intersect. Supports rotation.
+-- This gets the BoundingBox of the model which encompasses the model and all of its children.
+-- A major benefit to this is being able to detect collisions between models that are not parented to the Workspace
 
 local SATUtil = {}
 
--- Test if two bounding boxes intersect. Return true if they do.
+-- Test if two Models intersect. Return true if they do.
 
 function SATUtil.ModelsCollide(object1: Model, object2: Model)
 	local box1CFrame, box1Size = object1:GetBoundingBox()
